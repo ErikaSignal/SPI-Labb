@@ -1,39 +1,33 @@
 package org.example.consumer;
 
-import org.example.provider.GothenburgWeather;
-import org.example.provider.MalmoWeather;
-import org.example.provider.StockholmWeather;
 import org.example.service.Weather;
 
-import java.util.Scanner;
-import java.util.ServiceLoader;
+import java.util.*;
 
 public class Main {
     public static void main(String[] args) {
 
         ServiceLoader<Weather> loader = ServiceLoader.load(Weather.class);
 
-        Scanner scanner = new Scanner(System.in);
-        String city = "";
+        System.out.println("Today's weather: ");
 
-        while (true) {
-            System.out.println("Enter the name of the city: ");
-            city = scanner.nextLine();
+        List<String> cities = Arrays.asList("Gothenburg", "Malmo", "Stockholm");
 
-            if (city.equalsIgnoreCase("Gothenburg") || city.equalsIgnoreCase("Stockholm") || city.equalsIgnoreCase("Malmö")) {
-                break;
-            } else {
-                System.out.println("Invalid city name. Please try again.");
+        Map<String, Weather> weatherServices = new HashMap<>();
+        for (Weather weatherService : loader) {
+            for (String city : cities) {
+                if (weatherService.getClass().getSimpleName().startsWith(city)) {
+                    weatherServices.put(city, weatherService);
+                }
             }
         }
 
-        for (Weather weatherService : loader) {
-            if (weatherService instanceof GothenburgWeather && city.equalsIgnoreCase("Gothenburg")) {
+        for (String city : cities) {
+            Weather weatherService = weatherServices.get(city);
+            if (weatherService != null) {
                 System.out.println(weatherService.weather(city));
-            } else if (weatherService instanceof StockholmWeather && city.equalsIgnoreCase("Stockholm")) {
-                System.out.println(weatherService.weather(city));
-            } else if (weatherService instanceof MalmoWeather && city.equalsIgnoreCase("Malmö")) {
-                System.out.println(weatherService.weather(city));
+            } else {
+                System.out.println("No weather service found for " + city);
             }
         }
     }
